@@ -7,7 +7,10 @@ Solo utiliza la biblioteca estándar de Python.
 from collections import deque
 from statistics import median
 from time import perf_counter
-import random
+
+
+# Cambia estos valores para probar los algoritmos de ordenamiento y búsqueda.
+VALUES_TO_TEST = [8, 3, 5, 1, 5, 0]
 
 
 def bubble_sort(values):
@@ -712,19 +715,19 @@ def run_checks():
 
 def show_trace():
     print("\nTraza corta de ordenamientos:")
-    print("bubble_sort([5, 1, 4])  ->", bubble_sort([5, 1, 4]))
-    print("selection_sort([5,1,4])->", selection_sort([5, 1, 4]))
-    print("insertion_sort([5,1,4])->", insertion_sort([5, 1, 4]))
-    print("merge_sort([8,3,5,1])  ->", merge_sort([8, 3, 5, 1]))
-    print("quick_sort([8,3,5,1])  ->", quick_sort([8, 3, 5, 1]))
+    print(f"Valores de prueba: {VALUES_TO_TEST}")
+    print("bubble_sort          ->", bubble_sort(VALUES_TO_TEST))
+    print("selection_sort       ->", selection_sort(VALUES_TO_TEST))
+    print("insertion_sort       ->", insertion_sort(VALUES_TO_TEST))
+    print("merge_sort           ->", merge_sort(VALUES_TO_TEST))
+    print("quick_sort           ->", quick_sort(VALUES_TO_TEST))
     print("radix_sort([21,13,11]) ->", radix_sort([21, 13, 11]))
     graph = {"A": ["B", "C"], "B": ["D"], "C": [], "D": []}
     print("BFS desde A             ->", BFS(graph, "A"))
     print("DFS desde A             ->", DFS(graph, "A"))
 
 
-def benchmark(sizes=(10, 100, 500), repetitions=5, seed=2026):
-    generator = random.Random(seed)
+def benchmark(values=VALUES_TO_TEST, repetitions=5):
     sort_functions = {
         "bubble": bubble_sort,
         "selection": selection_sort,
@@ -738,24 +741,74 @@ def benchmark(sizes=(10, 100, 500), repetitions=5, seed=2026):
 
     print("\nBenchmark (mediana de segundos; cada algoritmo recibe los mismos datos):")
     print(f"{'n':>6}  {'algoritmo':<18} {'mediana (s)':>14}")
-    for size in sizes:
-        data = [generator.randrange(0, 100_000) for _ in range(size)]
-        expected = sorted(data)
-        timings = {}
-        for name, sort_function in sort_functions.items():
-            observations = []
-            for _ in range(repetitions):
-                start = perf_counter()
-                result = sort_function(data)
-                observations.append(perf_counter() - start)
-                if result != expected:
-                    raise AssertionError(f"{name} produjo un orden incorrecto")
-            timings[name] = median(observations)
+    data = list(values)
+    expected = sorted(data)
+    timings = {}
+    for name, sort_function in sort_functions.items():
+        observations = []
+        for _ in range(repetitions):
+            start = perf_counter()
+            result = sort_function(data)
+            observations.append(perf_counter() - start)
+            if result != expected:
+                raise AssertionError(f"{name} produjo un orden incorrecto")
+        timings[name] = median(observations)
 
-        for name, elapsed in sorted(timings.items(), key=lambda entry: entry[1]):
-            print(f"{size:6}  {name:<18} {elapsed:14.8f}")
-        winner = min(timings, key=timings.get)
-        print(f"  Menor tiempo observado para n={size}: {winner}\n")
+    for name, elapsed in sorted(timings.items(), key=lambda entry: entry[1]):
+        print(f"{len(data):6}  {name:<18} {elapsed:14.8f}")
+    winner = min(timings, key=timings.get)
+    print(f"  Menor tiempo observado para n={len(data)}: {winner}\n")
+
+
+def benchmark_search_and_graph(values=VALUES_TO_TEST, repetitions=5):
+    search_functions = {
+        "linear search": linear_search,
+        "binary search": binary_search,
+    }
+
+    print("\nTiempos de búsqueda y recorridos (mediana de segundos):")
+    print(f"{'n':>6}  {'algoritmo':<18} {'mediana (s)':>14}")
+    data = list(values)
+    sorted_values = sorted(data)
+    target = sorted_values[-1] if sorted_values else -1
+    expected_index = data.index(target) if target in data else -1
+    search_cases = [
+        (
+            name,
+            search_function,
+            (data if name == "linear search" else sorted_values, target),
+            expected_index if name == "linear search" else (
+                sorted_values.index(target) if target in sorted_values else -1
+            ),
+        )
+        for name, search_function in search_functions.items()
+    ]
+
+    for name, algorithm, arguments, expected in search_cases:
+        observations = []
+        for _ in range(repetitions):
+            start = perf_counter()
+            result = algorithm(*arguments)
+            observations.append(perf_counter() - start)
+            if result != expected:
+                raise AssertionError(f"{name} produjo un resultado incorrecto")
+        print(f"{len(data):6}  {name:<18} {median(observations):14.8f}")
+
+    graph_size = len(data)
+    graph = {
+        vertex: [vertex + 1] if vertex + 1 < graph_size else []
+        for vertex in range(graph_size)
+    }
+    expected_traversal = list(range(graph_size)) if graph_size else [0]
+    for name, algorithm in (("BFS", BFS), ("DFS", DFS)):
+        observations = []
+        for _ in range(repetitions):
+            start = perf_counter()
+            result = algorithm(graph, 0)
+            observations.append(perf_counter() - start)
+            if result != expected_traversal:
+                raise AssertionError(f"{name} produjo un resultado incorrecto")
+        print(f"{graph_size:6}  {name:<18} {median(observations):14.8f}")
 
 
 if __name__ == "__main__":
@@ -763,3 +816,4 @@ if __name__ == "__main__":
     print("Comprobaciones: todas pasaron.")
     show_trace()
     benchmark()
+    benchmark_search_and_graph()

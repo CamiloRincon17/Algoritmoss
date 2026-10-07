@@ -12,7 +12,7 @@ En una terminal:
 python algoritmos_parcial.py
 ```
 
-El script comprueba resultados con ejemplos pequeños, muestra trazas de algunos algoritmos e imprime una comparación de tiempos para varios tamaños. En Google Colab, sube `algoritmos_parcial.py` y ejecuta:
+El script comprueba resultados con ejemplos pequeños, muestra trazas de algunos algoritmos e imprime una comparación de tiempos. Para cambiar los números de las pruebas, edita la lista `VALUES_TO_TEST` al inicio de `algoritmos_parcial.py`. En Google Colab, sube `algoritmos_parcial.py` y ejecuta:
 
 ```python
 %run algoritmos_parcial.py
@@ -27,7 +27,7 @@ print(merge_sort([8, 3, 5, 1]))
 print(binary_search([1, 3, 5, 8], 5))
 ```
 
-Los tiempos dependen del equipo, la versión de Python, el estado del sistema y los datos. La sección de benchmark mide varias repeticiones con `time.perf_counter()` y reporta la mediana; no se deben presentar esos resultados como una ley universal.
+Los tiempos dependen del equipo, la versión de Python, el estado del sistema y los datos. La sección de benchmark mide varias repeticiones con `time.perf_counter()` y reporta la mediana para los algoritmos de ordenamiento, búsqueda y recorridos de grafos; no se deben presentar esos resultados como una ley universal.
 
 ---
 
@@ -274,7 +274,7 @@ No es una estructura ni un algoritmo de ordenamiento: es una propiedad de una op
 
 ## Medición del tiempo con `time`
 
-El archivo de ejemplo usa `time.perf_counter()` para cronometrar algoritmos, repite cada prueba y compara medianas. Cada algoritmo de ordenamiento recibe una copia de los mismos datos y se verifica que el resultado coincida. Se imprimen los ganadores observados para cada tamaño; para reproducir el análisis, conserva el tamaño, la semilla, la cantidad de repeticiones y el equipo.
+El archivo usa `time.perf_counter()` para cronometrar los algoritmos de ordenamiento y búsqueda con los valores definidos en `VALUES_TO_TEST`, repite cada prueba y compara medianas. Cada algoritmo recibe datos equivalentes y se verifica que el resultado coincida. BFS y DFS se miden sobre un grafo lineal de tamaño igual a la cantidad de valores de esa lista.
 
 Una medición casera puede variar por procesos activos, calentamiento del intérprete, tamaño de la muestra y costos de copia. Usa tamaños crecientes y varias repeticiones; no midas una sola ejecución diminuta y concluyas que ese algoritmo siempre es más rápido. Además, comparar una implementación educativa en Python con `sorted()` compara también calidad de implementación y optimización, no solo la idea algorítmica.
 
